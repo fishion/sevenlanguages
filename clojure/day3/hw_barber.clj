@@ -25,7 +25,7 @@
 (def barb (agent 0))
 
 
-(defn check-chairs [chairs]
+(defn cut-hair [customers_done, chairs]
     (say barber "checking waiting room")
     (if (and (= (chairs :beingcut) 0)
             (> (chairs :waiting) 0) )
@@ -34,19 +34,18 @@
             (dosync(
                 (alter chairs assoc :beingcut 1)
                 (alter chairs assoc :waiting (- (chairs :waiting) 1))
-            )))
-        (say barber "nobody there"))
-)
-
-(defn cut-hair [customers_done, chairs] 
-    (say barber (str "Cutting Hair of customer " (+ customers_done 1)))
-    (Thread/sleep 1000)
-    (say barber (str "Done cutting Hair of customer " (+ customers_done 1)))
-    (say barber (str "And check out my chairs " (@chairs :waiting)) )
-    (dosync(
-        alter chairs assoc :beingcut 0
-    ))
-    (+ 1 customers_done)
+            ))
+            (say barber (str "Cutting Hair of customer " (+ customers_done 1)))
+            (Thread/sleep 1000)
+            (say barber (str "Done cutting Hair of customer " (+ customers_done 1)))
+            (say barber (str "And check out my chairs " (@chairs :waiting)) )
+            (dosync(
+                alter chairs assoc :beingcut (- (chairs :beingcut) 1)
+            ))
+            (+ 1 customers_done))
+        (do 
+            (say barber "nobody there")
+            customers_done))
 )
 
 (defn open-shop [barb, chairs]
@@ -59,7 +58,7 @@
             (alter chairs assoc :waiting (+ (chairs :waiting) 1) )
             (say customer "Meh. Too full.")
     ))
-    (check-chairs chairs)
+    (send barb cut-hair chairs)
     (send barb cut-hair chairs)
 )
 
