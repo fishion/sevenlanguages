@@ -9,40 +9,40 @@
 ; when haircut finishes, customer leaves
 ;; Write a multi threaded program to determine how many haircuts a barber can give in 10 seconds.
 
-;(defrecord Person [name])
-;(def customer (Person. :customer))
-;(def barber (Person. :barber))
-;(defmulti say 
-;    (fn [who, thing] ( :name who )))
-;(defmethod say :customer [who, thing]
-;    (println (str "CUSTOMER SAYS : " thing)))
-;(defmethod say :barber [who, thing]
-;    (println (str "BARBER SAYS : " thing)))
+; So this is a Person type and multimethods for saying things for output
+(defrecord Person [name])
+(def customer (Person. :Customer))
+(def barber (Person. :Barber))
+(defmulti say 
+    (fn [who, thing] ( :name who )))
+(defmethod say :Customer [who, thing]
+    (println (str "CUSTOMER SAYS : " thing)))
+(defmethod say :Barber [who, thing]
+    (println (str "BARBER SAYS : " thing)))
 
+; set up a reference and a barber agent for async working
 (def chairs (ref {:waiting 0, :beingcut 0}))
 (def barb (agent 0))
 
-(defn say [who, thing]
-    (println (str who " says : " thing)))
 
 (defn check-chairs [chairs]
-    (say "Barber" "checking waiting room")
+    (say barber "checking waiting room")
     (if (and (= (chairs :beingcut) 0)
             (> (chairs :waiting) 0) )
         (do
-            (say "Barber" "Next please")
+            (say barber "Next please")
             (dosync(
                 (alter chairs assoc :beingcut 1)
                 (alter chairs assoc :waiting (- (chairs :waiting) 1))
             )))
-        (say "Barber" "nobody there"))
+        (say barber "nobody there"))
 )
 
 (defn cut-hair [customers_done, chairs] 
-    (say "Barber" (str "Cutting Hair of customer " (+ customers_done 1)))
+    (say barber (str "Cutting Hair of customer " (+ customers_done 1)))
     (Thread/sleep 1000)
-    (say "Barber" (str "Done cutting Hair of customer " (+ customers_done 1)))
-    (say "Barber" (str "And check out my chairs " (@chairs :waiting)) )
+    (say barber (str "Done cutting Hair of customer " (+ customers_done 1)))
+    (say barber (str "And check out my chairs " (@chairs :waiting)) )
     (dosync(
         alter chairs assoc :beingcut 0
     ))
@@ -51,16 +51,17 @@
 
 (defn open-shop [barb, chairs]
     ; maybe use a sequence of random numbers to iterate over until shop closes
-    (say "Customer" "Do I need a haircut?")
+    (say customer "Do I need a haircut?")
     (Thread/sleep 1000)
-    (say "Customer" "OK, I'm going in")
+    (say customer "OK, I'm going in")
     (dosync (
         if (< (chairs :waiting) 2)
             (alter chairs assoc :waiting (+ (chairs :waiting) 1) )
-            (say "Customer" "Meh. Too full.")
+            (say customer "Meh. Too full.")
     ))
     (check-chairs chairs)
     (send barb cut-hair chairs)
 )
 
+; open shop
 (open-shop barb chairs)
