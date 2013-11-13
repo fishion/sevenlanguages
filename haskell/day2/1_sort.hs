@@ -23,5 +23,11 @@ foldsort list = biggest:foldsort rest
     where extracted = foldr extract (0, []) list
           biggest = fst extracted
           rest = snd extracted
+-- there's actually problems with this method. Like how it recognises the first element
+-- is flawed
 
-
+-- here's another way I found when I cheated and looked it up
+cheatsort [] = []
+cheatsort (h:t) = (cheatsort lt) ++ [h] ++ (cheatsort gt)
+    where lt = filter (< h) t
+          gt = filter (\x -> not (x < h)) t
