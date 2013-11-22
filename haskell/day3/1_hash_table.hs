@@ -5,8 +5,9 @@ module Main where
 -- an element for a hash key several levels deep
 
     data HashKeyVal a = Hash String a deriving (Show)
+    type HashTable a = [HashKeyVal a]
 
-    hlookup :: String -> [HashKeyVal a] -> Maybe a
+    hlookup :: String -> HashTable a -> Maybe a
     hlookup _ [] = Nothing
     hlookup key ((Hash k v):tail)
         | k == key = Just v
